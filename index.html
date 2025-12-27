@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bharath | Ultra-Modern Portfolio</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    </script>
+    
+    <style>
+        :root {
+            --bg-body: #fdfdfd;
+            --bg-card: #ffffff;
+            --bg-glass: rgba(255, 255, 255, 0.7);
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --primary-glow: rgba(99, 102, 241, 0.15);
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: rgba(226, 232, 240, 0.8);
+            --accent: #10b981;
+            
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
+            --transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        body.dark-mode {
+            --bg-body: #020617;
+            --bg-card: #0f172a;
+            --bg-glass: rgba(15, 23, 42, 0.7);
+            --primary: #818cf8;
+            --primary-light: #a5b4fc;
+            --primary-glow: rgba(129, 140, 248, 0.1);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: rgba(51, 65, 85, 0.5);
+            --shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.6);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0; padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            transition: background-color 0.8s ease;
+            overflow-x: hidden;
+            perspective: 1000px;
+        }
+
+        /* --- ADVANCED BACKGROUND --- */
+        .bg-mesh {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -2;
+            background: 
+                radial-gradient(at 0% 0%, var(--primary-glow) 0, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.05) 0, transparent 50%),
+                radial-gradient(at 100% 100%, var(--primary-glow) 0, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(16, 185, 129, 0.05) 0, transparent 50%);
+        }
+
+        .floating-blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
+            opacity: 0.4;
+            pointer-events: none;
+            transition: transform 1s ease-out;
+            will-change: transform;
+        }
+
+        /* --- CONTAINER --- */
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* --- HEADER --- */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 1s both;
+        }
+
+        .brand {
+            font-size: 1.25rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .brand span {
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* --- THEME TOGGLE --- */
+        .btn-icon {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            color: var(--text-main);
+            transition: var(--transition);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .btn-icon:hover {
+            transform: scale(1.1) rotate(10deg);
+            border-color: var(--primary);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        /* --- HERO --- */
+        .hero {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 60px;
+            display: flex;
+            align-items: center;
+            gap: 60px;
+            margin-bottom: 80px;
+            box-shadow: var(--shadow);
+            animation: scaleIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            animation: shimmer 10s infinite linear;
+            pointer-events: none;
+        }
+
+        .avatar-wrap {
+            position: relative;
+            flex-shrink: 0;
+            transition: transform 0.3s ease-out;
+        }
+        .avatar-img {
+            width: 220px; height: 220px;
+            border-radius: var(--radius-md);
+            object-fit: cover;
+            border: 6px solid var(--bg-card);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        .avatar-wrap:hover .avatar-img {
+            transform: rotate(-3deg) scale(1.05);
+        }
+
+        .badge {
+            position: absolute;
+            bottom: -15px; right: -15px;
+            background: var(--accent);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .hero-text h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            letter-spacing: -2px;
+            line-height: 1.1;
+        }
+        .hero-text .role {
+            font-size: 1.25rem;
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 24px;
+            display: block;
+        }
+        .hero-text p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            max-width: 550px;
+            margin-bottom: 32px;
+        }
+
+        .social-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .magnetic-btn {
+            padding: 14px 28px;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: var(--transition);
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-main);
+        }
+        .magnetic-btn:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 10px 25px var(--primary-glow);
+        }
+
+        /* --- CONTROLS --- */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .filter-pill {
+            background: var(--bg-card);
+            padding: 6px;
+            border-radius: 100px;
+            border: 1px solid var(--border);
+            display: flex;
+            box-shadow: var(--shadow);
+        }
+        .filter-pill button {
+            border: none;
+            background: none;
+            padding: 10px 24px;
+            border-radius: 100px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .filter-pill button.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 6px 15px var(--primary-glow);
+        }
+
+        .btn-bundle {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: var(--radius-md);
+            font-weight: 800;
+            cursor: pointer;
+            display: flex; align-items: center; gap: 12px;
+            transition: var(--transition);
+            box-shadow: 0 10px 25px var(--primary-glow);
+        }
+        .btn-bundle:hover {
+            transform: translateY(-3px) scale(1.02);
+            background: var(--primary-light);
+        }
+
+        /* --- DOCUMENT CARDS --- */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
+        }
+
+        .tilt-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 30px;
+            transition: transform 0.1s ease-out, box-shadow 0.3s ease;
+            transform-style: preserve-3d;
+            cursor: default;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            position: relative;
+            will-change: transform;
+        }
+        .tilt-card:hover {
+            border-color: var(--primary-light);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+        }
+        
+        .tilt-card .inner {
+            transform: translateZ(20px);
+            pointer-events: none;
+        }
+
+        .doc-head {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .icon-circle {
+            width: 56px; height: 56px;
+            background: var(--primary-glow);
+            color: var(--primary);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem;
+            transition: var(--transition);
+        }
+        .tilt-card:hover .icon-circle {
+            transform: scale(1.1) rotate(-5deg);
+            background: var(--primary);
+            color: white;
+        }
+
+        .doc-title h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .doc-type {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: auto;
+            pointer-events: auto !important;
+        }
+        .btn-action {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border);
+            background: transparent;
+            color: var(--text-main);
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: var(--transition);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .btn-action:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-glow);
+        }
+        .btn-action.solid {
+            background: var(--text-main);
+            color: var(--bg-card);
+            border-color: var(--text-main);
+        }
+        .btn-action.solid:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        /* --- MODAL --- */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(12px);
+            z-index: 2000;
+            display: none;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        .modal-inner {
+            background: var(--bg-card);
+            width: 100%; max-width: 1000px;
+            height: 90vh;
+            margin: auto;
+            border-radius: var(--radius-lg);
+            display: flex; flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+            transform: scale(0.9);
+            animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        .modal-top {
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-view {
+            flex: 1; overflow: auto; background: #0f172a;
+            display: flex; align-items: center; justify-content: center;
+            padding: 40px;
+        }
+        .modal-view canvas, .modal-view img {
+            max-width: 100%; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        /* --- KEYFRAMES --- */
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes modalPop { to { transform: scale(1); } }
+        @keyframes shimmer { 0% { transform: translateX(-100%) rotate(45deg); } 100% { transform: translateX(100%) rotate(45deg); } }
+        @keyframes popIn { 0% { opacity: 0; transform: translateY(20px) scale(0.8); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 900px) {
+            .hero { flex-direction: column; text-align: center; padding: 40px; }
+            .hero-text h1 { font-size: 2.5rem; }
+            .social-row { justify-content: center; }
+            .section-header { flex-direction: column; align-items: stretch; }
+            .filter-pill { overflow-x: auto; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-mesh"></div>
+<div class="floating-blob" id="blob" style="width: 400px; height: 400px; background: var(--primary-glow); top: 10%; left: 10%;"></div>
+
+<div class="app-container">
+    <nav>
+        <div class="brand">
+            <i class="fa-solid fa-bolt" style="color: var(--primary);"></i>
+            <span>BHARATH.DEV</span>
+        </div>
+        <button class="btn-icon" id="theme-btn"><i class="fa-solid fa-moon"></i></button>
+    </nav>
+
+    <header class="hero">
+        <div class="avatar-wrap">
+            <img src="https://belwiek.vercel.app/bharath-profile.jpg" alt="Bharath" class="avatar-img" onerror="this.src='https://ui-avatars.com/api/?name=Bharath+Kumar&background=6366f1&color=fff&size=200'">
+            <div class="badge">Open to Work</div>
+        </div>
+        <div class="hero-text">
+            <span class="role">UI/UX Engineer & Frontend Architect</span>
+            <h1>G Bharath Kumar</h1>
+            <p>Crafting high-fidelity digital interfaces with a focus on motion, accessibility, and modern aesthetics. Based in Vizianagaram, India.</p>
+            <div class="social-row">
+                <a href="mailto:bharathkumargorle1744@gmail.com" class="magnetic-btn"><i class="fa-solid fa-envelope"></i> Email</a>
+                <a href="https://www.linkedin.com/in/bharath-kumar-gorle-78ba53333" target="_blank" class="magnetic-btn"><i class="fa-brands fa-linkedin"></i> LinkedIn</a>
+                <a href="https://github.com/online-in" target="_blank" class="magnetic-btn"><i class="fa-brands fa-github"></i> GitHub</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="section-header">
+        <div class="filter-pill">
+            <button class="active" data-filter="all">Everything</button>
+            <button data-filter="identity">Identity</button>
+            <button data-filter="education">Academic</button>
+            <button data-filter="professional">Professional</button>
+        </div>
+        <button class="btn-bundle" id="zip-all">
+            <i class="fa-solid fa-cloud-arrow-down"></i> Download Bundle
+        </button>
+    </div>
+
+    <main class="grid" id="main-grid">
+        <!-- Dynamic Cards -->
+    </main>
+</div>
+
+<!-- Modal -->
+<div class="modal" id="modal">
+    <div class="modal-inner">
+        <div class="modal-top">
+            <h2 id="modal-name">Document</h2>
+            <button class="btn-icon" id="close-modal"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-view" id="modal-view"></div>
+        <div class="modal-top" style="border-bottom: none; border-top: 1px solid var(--border);">
+            <div style="display: flex; gap: 10px;" id="pdf-paging">
+                <button class="btn-icon" id="pdf-prev"><i class="fa-solid fa-chevron-left"></i></button>
+                <span id="pdf-count" style="align-self: center; font-weight: 700; color: var(--text-muted);">Page 1/1</span>
+                <button class="btn-icon" id="pdf-next"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <a href="#" class="btn-bundle" id="modal-dl" download>Download Original</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    const DATA = [
+        { id: 1, name: 'Aadhaar Card', file: 'Bharath Adhar .pdf', type: 'identity', icon: 'fa-id-card' },
+        { id: 2, name: '10th Marks Memo', file: '10 Marks.pdf', type: 'education', icon: 'fa-graduation-cap' },
+        { id: 3, name: 'Inter Marks', file: 'Inter Marks.pdf', type: 'education', icon: 'fa-scroll' },
+        { id: 4, name: 'Transfer Cert', file: 'Inter TC.pdf', type: 'education', icon: 'fa-file-export' },
+        { id: 5, name: 'Caste Cert', file: 'Cast Certificate.pdf', type: 'identity', icon: 'fa-users' },
+        { id: 6, name: 'Income Cert', file: 'Income Certificate.pdf', type: 'professional', icon: 'fa-sack-dollar' },
+        { id: 7, name: 'PAN Card', file: 'PAN CARD BHARATH.pdf', type: 'identity', icon: 'fa-id-badge' },
+        { id: 8, name: 'Digital Signature', file: 'Signature.pdf', type: 'professional', icon: 'fa-signature' },
+        { id: 9, name: 'Passport Photo', file: 'Pass Photo Uniform.jpg', type: 'identity', icon: 'fa-camera' },
+        { id: 10, name: 'Expert Resume', file: 'Bharath Resume CUST.pdf', type: 'professional', icon: 'fa-briefcase' },
+        { id: 11, name: 'APAR ID', file: 'APARID.png', type: 'identity', icon: 'fa-fingerprint' }
+    ];
+
+    let currentPdf = null;
+    let pageNum = 1;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        setupTheme();
+        render('all');
+        setupFilters();
+        setupBlob();
+        setupZip();
+    });
+
+    function render(filter) {
+        const grid = document.getElementById('main-grid');
+        grid.innerHTML = '';
+        const filtered = filter === 'all' ? DATA : DATA.filter(d => d.type === filter);
+
+        filtered.forEach((doc, i) => {
+            const card = document.createElement('div');
+            card.className = 'tilt-card';
+            card.style.animation = `popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.05}s both`;
+            card.innerHTML = `
+                <div class="inner">
+                    <div class="doc-head">
+                        <div class="icon-circle"><i class="fa-solid ${doc.icon}"></i></div>
+                        <div class="doc-title">
+                            <span class="doc-type">${doc.type}</span>
+                            <h3>${doc.name}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn-action solid preview-btn" data-id="${doc.id}"><i class="fa-solid fa-expand"></i> Preview</button>
+                    <a href="${doc.file}" class="btn-action" download><i class="fa-solid fa-download"></i></a>
+                </div>
+            `;
+            
+            // Add Tilt Effect
+            card.addEventListener('mousemove', e => handleTilt(e, card));
+            card.addEventListener('mouseleave', () => resetTilt(card));
+            
+            grid.appendChild(card);
+        });
+
+        document.querySelectorAll('.preview-btn').forEach(btn => {
+            btn.onclick = () => openModal(DATA.find(d => d.id == btn.dataset.id));
+        });
+    }
+
+    function handleTilt(e, card) {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        const rotateX = (y - centerY) / 10;
+        const rotateY = (centerX - x) / 10;
+        
+        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+    }
+
+    function resetTilt(card) {
+        card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+    }
+
+    function setupFilters() {
+        document.querySelectorAll('.filter-pill button').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelector('.filter-pill .active').classList.remove('active');
+                btn.classList.add('active');
+                render(btn.dataset.filter);
+            };
+        });
+    }
+
+    function setupBlob() {
+        const blob = document.getElementById('blob');
+        window.addEventListener('mousemove', e => {
+            const x = e.clientX;
+            const y = e.clientY;
+            blob.style.transform = `translate(${x/20}px, ${y/20}px)`;
+        });
+    }
+
+    async function openModal(doc) {
+        const modal = document.getElementById('modal');
+        const view = document.getElementById('modal-view');
+        const paging = document.getElementById('pdf-paging');
+        const dl = document.getElementById('modal-dl');
+        
+        document.getElementById('modal-name').innerText = doc.name;
+        dl.href = doc.file;
+        view.innerHTML = '<div class="loader"></div>';
+        modal.style.display = 'flex';
+        
+        const ext = doc.file.split('.').pop().toLowerCase();
+        
+        if (ext === 'pdf') {
+            paging.style.display = 'flex';
+            try {
+                currentPdf = await pdfjsLib.getDocument(doc.file).promise;
+                pageNum = 1;
+                renderPdfPage(pageNum);
+            } catch(e) { view.innerHTML = 'Error loading document.'; }
+        } else {
+            paging.style.display = 'none';
+            const img = new Image();
+            img.src = doc.file;
+            img.onload = () => { view.innerHTML = ''; view.appendChild(img); };
+        }
+
+        document.getElementById('close-modal').onclick = () => modal.style.display = 'none';
+        
+        // Paging logic
+        document.getElementById('pdf-prev').onclick = () => { if(pageNum > 1) renderPdfPage(--pageNum); };
+        document.getElementById('pdf-next').onclick = () => { if(pageNum < currentPdf.numPages) renderPdfPage(++pageNum); };
+    }
+
+    async function renderPdfPage(num) {
+        const page = await currentPdf.getPage(num);
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const vp = page.getViewport({ scale: 1.5 });
+        canvas.height = vp.height; canvas.width = vp.width;
+        document.getElementById('modal-view').innerHTML = '';
+        document.getElementById('modal-view').appendChild(canvas);
+        await page.render({ canvasContext: ctx, viewport: vp }).promise;
+        document.getElementById('pdf-count').innerText = `Page ${num}/${currentPdf.numPages}`;
+    }
+
+    function setupTheme() {
+        const btn = document.getElementById('theme-btn');
+        const icon = btn.querySelector('i');
+        const update = () => {
+            const isDark = document.body.classList.contains('dark-mode');
+            icon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+            localStorage.setItem('pref-theme', isDark ? 'dark' : 'light');
+        };
+
+        if(localStorage.getItem('pref-theme') === 'dark') document.body.classList.add('dark-mode');
+        update();
+
+        btn.onclick = () => {
+            document.body.classList.toggle('dark-mode');
+            update();
+        };
+    }
+
+    function setupZip() {
+        document.getElementById('zip-all').onclick = async function() {
+            const btn = this;
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Zipping...';
+            btn.disabled = true;
+
+            const zip = new JSZip();
+            const fetches = DATA.map(async d => {
+                try {
+                    const res = await fetch(d.file);
+                    if(res.ok) zip.file(d.file, await res.blob());
+                } catch(e) {}
+            });
+
+            await Promise.all(fetches);
+            const content = await zip.generateAsync({type:'blob'});
+            saveAs(content, 'Bharath_Professional_Vault.zip');
+            
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Ready';
+            setTimeout(() => { btn.innerHTML = original; btn.disabled = false; }, 2000);
+        };
+    }
+</script>
+
+</body>
+</html>
